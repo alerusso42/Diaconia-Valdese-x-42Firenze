@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import {
-  Box, Heading, Text, VStack, SimpleGrid, Card, HStack, Button, Textarea, Badge, Input,
+  Box, Heading, Text, VStack, SimpleGrid, Card, HStack, Button, Textarea, Badge, Input, Image,
 } from "@chakra-ui/react";
 import {
   Send, TrendingUp, FileText, Pill, Navigation, Users,
@@ -13,6 +13,10 @@ import { useGuestCalendar } from "../../context/GuestCalendarContext";
 import { useDelivery } from "../../context/DeliveryContext";
 import { mockFacilities, type GuestRequestType } from "../../data/mockData";
 import { toaster } from "../../components/ui/toaster";
+import shoppingImageUrl from "../../assets/student/reminders/shopping_16560637.png";
+import cleaningImageUrl from "../../assets/student/reminders/cleaning-after-party_16872611.png";
+import silenceImageUrl from "../../assets/student/reminders/silence_18099772.png";
+import waitImageUrl from "../../assets/student/reminders/wait_2042400.png";
 
 const REQUEST_TYPES: { value: GuestRequestType; label: string; icon: React.ElementType; color: string }[] = [
   { value: 'documento', label: 'Documento', icon: FileText,      color: 'blue'   },
@@ -39,6 +43,37 @@ export function GuestDashboard() {
 
   const facilityId = user?.facilityIds?.[0] ?? 'f1';
   const facility   = mockFacilities.find(f => f.id === facilityId);
+
+  const reminderCards = [
+    {
+      title: "Divieto di fumare",
+      text: "Nessun fumo negli ambienti interni e negli spazi condivisi.",
+      image: shoppingImageUrl,
+      accent: "red.500",
+      bg: "red.50",
+    },
+    {
+      title: "Spazi comuni puliti",
+      text: "Dopo l'uso lascia cucina, tavoli e bagno in ordine.",
+      image: cleaningImageUrl,
+      accent: "green.500",
+      bg: "green.50",
+    },
+    {
+      title: "Turni di lavatrice",
+      text: "Rispetta il tuo turno e non sovrapporre i lavaggi.",
+      image: waitImageUrl,
+      accent: "orange.500",
+      bg: "orange.50",
+    },
+    {
+      title: "Musica bassa dopo le 22:00",
+      text: "Dalle 22:00 il volume va tenuto basso per il riposo di tutti.",
+      image: silenceImageUrl,
+      accent: "blue.500",
+      bg: "blue.50",
+    },
+  ];
 
   const myTasks    = user ? getTasksForUser(user.id) : [];
   const todayTasks = myTasks.filter(t => {
@@ -96,44 +131,81 @@ export function GuestDashboard() {
         <Text color="gray.500" fontSize="sm" mt={1}>{facility?.name}</Text>
       </Box>
 
-      {/* Due cerchi */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} gap={6} justifyItems="center">
-        {/* Cerchio 1 – Richiesta */}
-        <Card.Root
-          p={6} bg="blue.200" shadow="lg" borderRadius="full"
-          border="4px solid" borderColor="blue.300"
-          cursor="pointer" aspectRatio={1} w="180px"
-          display="flex" flexDirection="column" alignItems="center" justifyContent="center"
-          onClick={() => toggle('request')}
-          _hover={{ bg: "blue.300", transform: "scale(1.04)" }}
-          outline={openPanel === 'request' ? "3px solid" : "none"}
-          outlineColor="blue.500"
-          transition="background 0.2s ease, transform 0.2s ease"
-        >
-          <Send size={28} color="var(--chakra-colors-blue-700)" />
-          <Text fontWeight="bold" color="black" fontSize="md" mt={2} mb={1} textAlign="center">Richiesta</Text>
-          <Heading size="2xl" color="black">{pendingReqs.length + pendingDeliveries.length}</Heading>
-          <Text fontSize="xs" color="blue.800" textAlign="center">in attesa</Text>
-        </Card.Root>
+      <HStack align="flex-start" gap={8} w="full">
+        {/* Reminders a sinistra - verticale */}
+        <VStack gap={4} align="center">
+          {reminderCards.map((item) => (
+            <Box key={item.title} w="72px" display="flex" flexDirection="column" alignItems="center">
+              <Card.Root
+                p={0}
+                bg={item.bg}
+                shadow="sm"
+                borderRadius="full"
+                border="1px solid"
+                borderColor={item.accent}
+                cursor="pointer"
+                aspectRatio={1}
+                w="70px"
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                _hover={{ transform: "scale(1.05)" }}
+                transition="all 0.2s ease"
+                overflow="hidden"
+              >
+                <Box w="100%" h="100%" borderRadius="full" overflow="hidden">
+                  <Image src={item.image} alt={item.title} w="100%" h="100%" objectFit="cover" />
+                </Box>
+              </Card.Root>
+              <Text fontSize="2xs" color="gray.800" textAlign="center" fontWeight="bold" lineHeight="1" px={1} mt={0.5}>
+                {item.title}
+              </Text>
+            </Box>
+          ))}
+        </VStack>
 
-        {/* Cerchio 2 – Progresso */}
-        <Card.Root
-          p={6} bg="teal.200" shadow="lg" borderRadius="full"
-          border="4px solid" borderColor="teal.300"
-          cursor="pointer" aspectRatio={1} w="180px"
-          display="flex" flexDirection="column" alignItems="center" justifyContent="center"
-          onClick={() => toggle('progress')}
-          _hover={{ bg: "teal.300", transform: "scale(1.04)" }}
-          outline={openPanel === 'progress' ? "3px solid" : "none"}
-          outlineColor="teal.500"
-          transition="background 0.2s ease, transform 0.2s ease"
-        >
-          <TrendingUp size={28} color="var(--chakra-colors-teal-700)" />
-          <Text fontWeight="bold" color="black" fontSize="md" mt={2} mb={1} textAlign="center">Progresso</Text>
-          <Heading size="2xl" color="black">{completionPct}%</Heading>
-          <Text fontSize="xs" color="teal.800" textAlign="center">completato oggi</Text>
-        </Card.Root>
-      </SimpleGrid>
+        {/* Cerchi a destra - come prima */}
+        <Box flex="1" display="flex" justifyContent="center" mt={20}>
+          <HStack gap={56} align="center" justify="center" flexWrap="nowrap">
+            {/* Cerchio 1 – Richiesta */}
+            <Card.Root
+            p={6} bg="blue.200" shadow="lg" borderRadius="full"
+            border="4px solid" borderColor="blue.300"
+            cursor="pointer" aspectRatio={1} w="180px"
+            display="flex" flexDirection="column" alignItems="center" justifyContent="center"
+            onClick={() => toggle('request')}
+            _hover={{ bg: "blue.300", transform: "scale(1.04)" }}
+            outline={openPanel === 'request' ? "3px solid" : "none"}
+            outlineColor="blue.500"
+            transition="background 0.2s ease, transform 0.2s ease"
+          >
+            <Send size={28} color="var(--chakra-colors-blue-700)" />
+            <Text fontWeight="bold" color="black" fontSize="md" mt={2} mb={1} textAlign="center">Richiesta</Text>
+            <Heading size="2xl" color="black">{pendingReqs.length + pendingDeliveries.length}</Heading>
+            <Text fontSize="xs" color="blue.800" textAlign="center">in attesa</Text>
+            </Card.Root>
+
+            {/* Cerchio 2 – Progresso */}
+            <Card.Root
+            p={6} bg="teal.200" shadow="lg" borderRadius="full"
+            border="4px solid" borderColor="teal.300"
+            cursor="pointer" aspectRatio={1} w="180px"
+            display="flex" flexDirection="column" alignItems="center" justifyContent="center"
+            onClick={() => toggle('progress')}
+            _hover={{ bg: "teal.300", transform: "scale(1.04)" }}
+            outline={openPanel === 'progress' ? "3px solid" : "none"}
+            outlineColor="teal.500"
+            transition="background 0.2s ease, transform 0.2s ease"
+          >
+            <TrendingUp size={28} color="var(--chakra-colors-teal-700)" />
+            <Text fontWeight="bold" color="black" fontSize="md" mt={2} mb={1} textAlign="center">Progresso</Text>
+            <Heading size="2xl" color="black">{completionPct}%</Heading>
+            <Text fontSize="xs" color="teal.800" textAlign="center">completato oggi</Text>
+            </Card.Root>
+          </HStack>
+        </Box>
+      </HStack>
 
       {/* Pannello a tendina */}
       <Box
@@ -322,6 +394,7 @@ export function GuestDashboard() {
           </Box>
         )}
       </Box>
+
     </VStack>
   );
 }
